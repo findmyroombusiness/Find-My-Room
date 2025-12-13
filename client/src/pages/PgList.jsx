@@ -204,71 +204,71 @@ const PGList = () => {
         </div>
 
         {/* Listings */}
-        {loading ? (
+        {loading && allListings.length === 0 && (
           <p className="text-center text-gray-500 mt-[30vh]">Loading PGs...</p>
-        ) : error ? (
-          <p className="text-center text-red-500 mt-10">{error}</p>
-        ) : (
-          sortedListings.length === 0 ? (
-            <p className="text-gray-500 text-center mt-[30vh]">No PGs found.</p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6  md:mb-0">
-              {sortedListings.map((listing) => (
-                <div key={listing._id || listing.id} className="relative">
-                  <Link to={`/PgDetail/${listing._id || listing.id}`}> 
-                    <div className="bg-white rounded-2xl shadow-md overflow-hidden hover:scale-105 transition-transform cursor-pointer group">
-                      {/* Heart Button - now inside card and scales with card */}
-                      <button
-                        onClick={e => { e.preventDefault(); toggleFavourite(listing._id || listing.id); }}
-                        className="absolute top-3 right-3 z-10"
-                      >
-                        <Heart
-                          className={`w-6 h-6 transition duration-300 group-hover:scale-125 ${
-                            favourites.includes(listing._id || listing.id)
-                              ? "text-red-600 fill-red-600"
-                              : "text-gray-400"
-                          }`}
-                        />
-                      </button>
-                      {listing.images && listing.images[0] ? (
-                        <img
-                          src={listing.images[0]}
-                          alt="pg"
-                          className="w-full h-48 object-cover"
-                          onError={e => { e.target.onerror=null; e.target.src='/vite.svg'; }}
-                        />
-                      ) : (
-                        <div className="w-full h-48 flex items-center justify-center bg-gray-200 text-gray-500 text-lg">
-                          No image provided
-                        </div>
-                      )}
-                      <div className="p-4">
-                        <h2 className="text-xl font-bold text-[rgb(77,95,171)] mb-1">
-                          {listing.rent} / month
-                        </h2>
-                        <p className="text-gray-600 mb-2">{listing.address}</p>
-                        <div className="flex justify-between items-center mb-2 text-gray-700">
-                          <span className="flex items-center gap-1">
-                            <Bed className="w-4 h-4" /> {listing.seater}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Users className="w-4 h-4" /> {listing.forWhom}
-                          </span>
-                        </div>
-                        <p className="text-right text-sm text-gray-500">{formatDate(listing.createdAt)}</p>
-                      </div>
-                    </div>
-                  </Link>
-                </div>
-              ))}
-            </div>
-          )
         )}
-          
+        {!loading && error && (
+          <p className="text-center text-red-500 mt-10">{error}</p>
+        )}
+        {!loading && !error && sortedListings.length === 0 && (
+          <p className="text-gray-500 text-center mt-[30vh]">No PGs found.</p>
+        )}
+        {!loading && !error && sortedListings.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6  md:mb-0">
+            {sortedListings.map((listing) => (
+              <div key={listing._id || listing.id} className="relative">
+                <Link to={`/PgDetail/${listing._id || listing.id}`}>
+                  <div className="bg-white rounded-2xl shadow-md overflow-hidden hover:scale-105 transition-transform cursor-pointer group">
+                    {/* Heart Button - now inside card and scales with card */}
+                    <button
+                      onClick={e => { e.preventDefault(); toggleFavourite(listing._id || listing.id); }}
+                      className="absolute top-3 right-3 z-10"
+                    >
+                      <Heart
+                        className={`w-6 h-6 transition duration-300 group-hover:scale-125 ${
+                          favourites.includes(listing._id || listing.id)
+                            ? "text-red-600 fill-red-600"
+                            : "text-gray-400"
+                        }`}
+                      />
+                    </button>
+                    {listing.images && listing.images[0] ? (
+                      <img
+                        src={listing.images[0]}
+                        alt="pg"
+                        className="w-full h-48 object-cover"
+                        onError={e => { e.target.onerror=null; e.target.src='/vite.svg'; }}
+                      />
+                    ) : (
+                      <div className="w-full h-48 flex items-center justify-center bg-gray-200 text-gray-500 text-lg">
+                        No image provided
+                      </div>
+                    )}
+                    <div className="p-4">
+                      <h2 className="text-xl font-bold text-[rgb(77,95,171)] mb-1">
+                        {listing.rent} / month
+                      </h2>
+                      <p className="text-gray-600 mb-2">{listing.address}</p>
+                      <div className="flex justify-between items-center mb-2 text-gray-700">
+                        <span className="flex items-center gap-1">
+                          <Bed className="w-4 h-4" /> {listing.seater}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Users className="w-4 h-4" /> {listing.forWhom}
+                        </span>
+                      </div>
+                      <p className="text-right text-sm text-gray-500">{formatDate(listing.createdAt)}</p>
+                    </div>
+                  </div>
+                </Link>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
-};
+}
 
 const PGListWithFooter = () => (
   <>
@@ -276,4 +276,5 @@ const PGListWithFooter = () => (
     <Footer />
   </>
 );
+
 export default PGListWithFooter;

@@ -122,85 +122,7 @@ const MyListing = () => {
     };
     fetchMyListings();
   }, [filterType]);
-  // Infinite scroll: fetch next page from server when user scrolls near bottom
-  useEffect(() => {
-    if (!hasMore || loading) return;
-    const handleScroll = () => {
-      if (
-        window.innerHeight + window.scrollY >= document.body.offsetHeight - 200 &&
-        hasMore && !loading && !fetchLock.current
-      ) {
-        fetchLock.current = true;
-        setLoading(true);
-        const token = localStorage.getItem("token");
-        let url = "";
-        if (filterType === "flat") {
-          url = `https://find-my-room-backend.onrender.com/api/flats/my/listings?page=${page}&limit=3`;
-        } else if (filterType === "hostel") {
-          url = `https://find-my-room-backend.onrender.com/api/hostels/my/listings?page=${page}&limit=3`;
-        } else if (filterType === "pg") {
-          url = `https://find-my-room-backend.onrender.com/api/pgs/my/listings?page=${page}&limit=3`;
-        } else if (filterType === "roommate") {
-          Promise.all([
-            fetch(`https://find-my-room-backend.onrender.com/api/roommaterooms/my/listings?page=${page}&limit=3`, {
-              headers: { Authorization: `Bearer ${token}` },
-            }),
-            fetch(`https://find-my-room-backend.onrender.com/api/roommateflats/my/listings?page=${page}&limit=3`, {
-              headers: { Authorization: `Bearer ${token}` },
-            }),
-          ])
-            .then(async ([roomsRes, flatsRes]) => {
-              const [roomsData, flatsData] = await Promise.all([
-                roomsRes.json(),
-                flatsRes.json(),
-              ]);
-              const merged = [
-                ...roomsData.map((r) => ({ ...r, listingKind: "room" })),
-                ...flatsData.map((f) => ({ ...f, listingKind: "flat" })),
-              ];
-              setAllListings((prev) => {
-                const existingIds = new Set(prev.map((l) => l._id));
-                const filtered = merged.filter((l) => !existingIds.has(l._id));
-                return [...prev, ...filtered];
-              });
-              setHasMore(merged.length >= 3);
-              setPage((prev) => prev + 1);
-              setLoading(false);
-              fetchLock.current = false;
-            })
-            .catch(() => {
-              setLoading(false);
-              fetchLock.current = false;
-            });
-          return;
-        } else {
-          url = `https://find-my-room-backend.onrender.com/api/rooms/my/listings?page=${page}&limit=3`;
-        }
-        apiFetch(url, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            const newListings = data.listings || data;
-            setAllListings((prev) => {
-              const existingIds = new Set(prev.map((l) => l._id));
-              const filtered = newListings.filter((l) => !existingIds.has(l._id));
-              return [...prev, ...filtered];
-            });
-            setHasMore((data.listings ? data.listings.length : data.length) >= 3);
-            setPage((prev) => prev + 1);
-            setLoading(false);
-            fetchLock.current = false;
-          })
-          .catch(() => {
-            setLoading(false);
-            fetchLock.current = false;
-          });
-      }
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [hasMore, loading, page, filterType]);
+  // Infinite scroll removed: do not load more on scroll
 
   // Toggle visibility (active/inactive) for a listing
   const toggleActive = async (id) => {
@@ -364,7 +286,7 @@ const MyListing = () => {
           </p>
         ) : error ? (
           <p className="text-center text-red-500 mt-10">{error}</p>
-        ) : filteredListings.length === 0 ? (
+        ) : !loading && !error && filteredListings.length === 0 ? (
           <p className="text-gray-500 text-center mt-[30vh]">No listings found.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
