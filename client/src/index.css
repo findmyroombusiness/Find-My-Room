@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+
+
+ 
+@font-face {
+  font-family: 'krish';
+  src: url('../src/assets/fonts/luckguy.ttf') format('truetype');
+  
+}
+
+.myfont {
+  font-family: krish;
+  color: rgb(77, 95, 171);
+}
+
+@font-face {
+  font-family: 'krish1';
+  src: url('../src/assets/fonts/luckguy2.ttf') format('truetype');
+  
+}
+
+.myfont1 {
+  font-family: krish1;
+ 
+}
+
+html, body {
+  overscroll-behavior: none; /* disables scroll chaining and overscroll */
+}
