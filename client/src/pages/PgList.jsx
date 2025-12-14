@@ -204,20 +204,17 @@ const PGList = () => {
         </div>
 
         {/* Listings */}
-        {loading && allListings.length === 0 && (
+        {loading ? (
           <p className="text-center text-gray-500 mt-[30vh]">Loading PGs...</p>
-        )}
-        {!loading && error && (
+        ) : error ? (
           <p className="text-center text-red-500 mt-10">{error}</p>
-        )}
-        {!loading && !error && sortedListings.length === 0 && (
+        ) : (!loading && sortedListings.length === 0) ? (
           <p className="text-gray-500 text-center mt-[30vh]">No PGs found.</p>
-        )}
-        {!loading && !error && sortedListings.length > 0 && (
+        ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6  md:mb-0">
             {sortedListings.map((listing) => (
               <div key={listing._id || listing.id} className="relative">
-                <Link to={`/PgDetail/${listing._id || listing.id}`}>
+                <Link to={`/PgDetail/${listing._id || listing.id}`}> 
                   <div className="bg-white rounded-2xl shadow-md overflow-hidden hover:scale-105 transition-transform cursor-pointer group">
                     {/* Heart Button - now inside card and scales with card */}
                     <button
@@ -251,7 +248,7 @@ const PGList = () => {
                       <p className="text-gray-600 mb-2">{listing.address}</p>
                       <div className="flex justify-between items-center mb-2 text-gray-700">
                         <span className="flex items-center gap-1">
-                          <Bed className="w-4 h-4" /> {listing.seater}
+                          <Bed className="w-4 h-4" /> {listing.bhk} BHK
                         </span>
                         <span className="flex items-center gap-1">
                           <Users className="w-4 h-4" /> {listing.forWhom}
@@ -265,10 +262,11 @@ const PGList = () => {
             ))}
           </div>
         )}
+          
       </div>
     </div>
   );
-}
+};
 
 const PGListWithFooter = () => (
   <>
@@ -276,5 +274,4 @@ const PGListWithFooter = () => (
     <Footer />
   </>
 );
-
 export default PGListWithFooter;

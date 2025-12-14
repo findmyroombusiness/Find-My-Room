@@ -151,7 +151,7 @@ const Favourite = () => {
           </div>
         ) : error ? (
           <div className="text-center mt-12 text-red-500">{error}</div>
-        ) : !loading && !error && allListings.length === 0 ? (
+        ) : allListings.length === 0 ? (
           <p className="text-gray-500 text-center mt-[30vh]">
             You have no favourite listings.
           </p>

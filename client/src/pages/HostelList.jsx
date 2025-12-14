@@ -1,3 +1,9 @@
+// Add formatDate utility to fix ReferenceError
+const formatDate = (date) => {
+  if (!date) return "";
+  const d = typeof date === "string" ? new Date(date) : date;
+  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" });
+};
 import Footer from "../components/Footer";
 import React, { useState, useEffect } from "react";
 import { MapPin, ArrowUpDown, Heart, Bed, Users } from "lucide-react";
@@ -114,13 +120,11 @@ const HostelList = () => {
 
     try {
       await apiFetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/favourites/${
-          isFav ? "remove" : "add"
-        }`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/favourites/${isFav ? 'remove' : 'add'}`,
         {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ listingId: id }),
@@ -129,14 +133,9 @@ const HostelList = () => {
     } catch {}
   };
 
-  const handleSortToggle = () => {
-    setSortActive(true);
-    setSortType((prev) => (prev === "high" ? "low" : "high"));
-    setTimeout(() => setSortActive(false), 600);
-  };
+  // ...existing code...
 
-  const useCurrentLocation = () => alert("Using current location!");
-
+  // Only show all loaded listings, sorted and filtered
   const sortedListings = dataReady
     ? allListings
         .filter(
@@ -149,17 +148,9 @@ const HostelList = () => {
         )
     : [];
 
-  const formatDate = (date) =>
-    new Date(date).toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    });
-
   return (
     <div>
       <Navbar />
-
       <div className="min-h-[81vh] bg-gray-100 p-4 md:px-8 pt-20 md:pt-10">
         {/* Desktop search/sort/location */}
         <div className="hidden md:flex items-center gap-6 mb-6">
@@ -171,14 +162,18 @@ const HostelList = () => {
             className="flex-1 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[rgb(77,95,171)]"
           />
           <button
-            onClick={handleSortToggle}
+            onClick={() => {
+              setSortActive(true);
+              setSortType((prev) => (prev === 'high' ? 'low' : 'high'));
+              setTimeout(() => setSortActive(false), 600);
+            }}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 transition text-[rgb(77,95,171)] hover:bg-[rgb(77,95,171)] hover:text-white ${sortActive ? 'bg-[rgb(77,95,171)] text-white border-[rgb(77,95,171)]' : ''}`}
           >
             <ArrowUpDown className={`w-5 h-5 transition-transform duration-300 ${sortType === 'high' ? 'rotate-180' : ''}`} />
             Sort ({sortType === 'high' ? 'High to Low' : 'Low to High'})
           </button>
           <button
-            onClick={useCurrentLocation}
+            onClick={() => alert("Using current location!")}
             className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-[rgb(77,95,171)] hover:bg-[rgb(77,95,171)] hover:text-white transition"
           >
             <MapPin className="w-5 h-5" /> Nearby
@@ -195,32 +190,31 @@ const HostelList = () => {
           />
           <div className="flex gap-2">
             <button
-              onClick={handleSortToggle}
+              onClick={() => {
+                setSortActive(true);
+                setSortType((prev) => (prev === 'high' ? 'low' : 'high'));
+                setTimeout(() => setSortActive(false), 600);
+              }}
               className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg border border-gray-300 transition text-sm text-[rgb(77,95,171)] hover:bg-[rgb(77,95,171)] hover:text-white ${sortActive ? 'bg-[rgb(77,95,171)] text-white border-[rgb(77,95,171)]' : ''}`}
             >
               <ArrowUpDown className={`w-5 h-5 transition-transform duration-300 ${sortType === 'high' ? 'rotate-180' : ''}`} />
               Sort ({sortType === 'high' ? 'High to Low' : 'Low to High'})
             </button>
             <button
-              onClick={useCurrentLocation}
+              onClick={() => alert("Using current location!")}
               className="flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg border border-gray-300 text-[rgb(77,95,171)] hover:bg-[rgb(77,95,171)] hover:text-white transition text-sm"
             >
               <MapPin className="w-5 h-5" /> Nearby
             </button>
           </div>
         </div>
-
         {/* Listings */}
         {loading ? (
-          <p className="text-center text-gray-500 mt-[30vh]">
-            Loading hostels...
-          </p>
+          <p className="text-center text-gray-500 mt-[30vh]">Loading hostels...</p>
         ) : error ? (
           <p className="text-center text-red-500 mt-10">{error}</p>
-        ) : !loading && !error && sortedListings.length === 0 ? (
-          <p className="text-gray-500 text-center mt-[30vh]">
-            No hostels found.
-          </p>
+        ) : (!loading && sortedListings.length === 0) ? (
+          <p className="text-gray-500 text-center mt-[30vh]">No hostels found.</p>
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6 md:mb-0">
@@ -280,8 +274,6 @@ const HostelList = () => {
                 </div>
               ))}
             </div>
-
-            
           </>
         )}
       </div>

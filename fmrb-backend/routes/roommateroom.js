@@ -31,10 +31,18 @@ router.post("/", auth, async (req, res) => {
 });
 
 // Get all roommate room listings (public)
+// Get all roommate room listings (public, paginated)
 router.get("/", async (req, res) => {
   try {
-    const rooms = await RoommateRoom.find({ active: true }).populate("user", "name email").sort({ createdAt: -1 });
-    res.json(rooms);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const rooms = await RoommateRoom.find({ active: true })
+      .populate("user", "name email")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+    res.json({ listings: rooms });
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch roommate rooms", error: err.message });
   }

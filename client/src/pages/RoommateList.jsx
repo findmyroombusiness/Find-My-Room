@@ -60,6 +60,8 @@ const LiveWithRoommate = () => {
         setAllListings(merged);
         setHasMore(merged.length >= 3);
         setPage(2);
+        listingsLoaded = true;
+        checkReady();
       })
       .catch(err => {
         setError(err.message);
@@ -129,7 +131,11 @@ const LiveWithRoommate = () => {
                 date: l.createdAt,
               })),
             ];
-            setAllListings(prev => [...prev, ...merged]);
+            setAllListings(prev => {
+              const existingIds = new Set(prev.map(l => l._id || l.id));
+              const filtered = merged.filter(l => !existingIds.has(l._id || l.id));
+              return [...prev, ...filtered];
+            });
             setHasMore(merged.length >= 3);
             setPage(prev => prev + 1);
             setLoading(false);
@@ -295,16 +301,13 @@ const LiveWithRoommate = () => {
         </div>
 
         {/* ---------------- LISTINGS ---------------- */}
-        {loading && allListings.length === 0 && (
+        {loading ? (
           <div className="text-center text-gray-500 mt-[30vh]">Loading listings...</div>
-        )}
-        {!loading && error && (
+        ) : error ? (
           <div className="text-center mt-12 text-red-500">{error}</div>
-        )}
-        {!loading && !error && filteredListings.length === 0 && (
+        ) : (!loading && filteredListings.length === 0) ? (
           <p className="text-gray-500 text-center mt-[30vh]">No listings found.</p>
-        )}
-        {!loading && !error && filteredListings.length > 0 && (
+        ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6  md:mb-10">
             {filteredListings.map((listing) => (
               <div key={listing._id || listing.id} className="relative">
@@ -340,7 +343,7 @@ const LiveWithRoommate = () => {
                     )}
                     <div className="p-4">
                       <h2 className="text-xl font-bold text-[rgb(77,95,171)] mb-1">
-                        {listing.rent} / month
+                        	{listing.rent} / month
                       </h2>
                       <p className="text-gray-600 mb-2">{listing.address}</p>
                       <div className="flex justify-between items-center mb-2 text-gray-700">
@@ -367,7 +370,7 @@ const LiveWithRoommate = () => {
       </div>
     </div>
   );
-}
+};
 
 const LiveWithRoommateWithFooter = () => (
   <>
@@ -375,5 +378,4 @@ const LiveWithRoommateWithFooter = () => (
     <Footer />
   </>
 );
-
 export default LiveWithRoommateWithFooter;

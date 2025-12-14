@@ -286,7 +286,7 @@ const MyListing = () => {
           </p>
         ) : error ? (
           <p className="text-center text-red-500 mt-10">{error}</p>
-        ) : !loading && !error && filteredListings.length === 0 ? (
+        ) : filteredListings.length === 0 ? (
           <p className="text-gray-500 text-center mt-[30vh]">No listings found.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
