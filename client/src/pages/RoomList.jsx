@@ -19,6 +19,15 @@ const RoomList = () => {
   useEffect(() => {
     setLoading(true);
     setError("");
+    let listingsLoaded = false;
+    let favouritesLoaded = false;
+
+    const checkReady = () => {
+      if (listingsLoaded && favouritesLoaded) {
+        setLoading(false);
+        setDataReady(true);
+      }
+    };
 
     apiFetch(`${import.meta.env.VITE_API_BASE_URL}/api/rooms?page=1&limit=3`)
       .then(res => res.json())
@@ -29,15 +38,35 @@ const RoomList = () => {
         setAllListings(data.listings || data);
         setHasMore((data.listings ? data.listings.length : data.length) >= 3);
         setPage(2);
-        setDataReady(true);
+        listingsLoaded = true;
+        checkReady();
       })
       .catch(err => {
         setError(err.message || "Failed to fetch rooms");
-      })
-      .finally(() => {
-        fetchingRef.current = false;
         setLoading(false);
       });
+
+    const token = localStorage.getItem('token');
+    if (token) {
+      apiFetch(`${import.meta.env.VITE_API_BASE_URL}/api/favourites`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.favourites) {
+            setFavourites(data.favourites.map(f => f._id));
+          }
+          favouritesLoaded = true;
+          checkReady();
+        })
+        .catch(() => {
+          favouritesLoaded = true;
+          checkReady();
+        });
+    } else {
+      favouritesLoaded = true;
+      checkReady();
+    }
   }, []);
 
   useEffect(() => {
@@ -192,6 +221,31 @@ const RoomList = () => {
           >
             <MapPin className="w-5 h-5" /> Nearby
           </button>
+        </div>
+        {/* MOBILE SEARCH / SORT / LOCATION */}
+        <div className="flex md:hidden flex-col gap-3 mb-6">
+          <input
+            type="text"
+            placeholder="Search by area..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[rgb(77,95,171)]"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={handleSortToggle}
+              className={`flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg border border-gray-300 transition text-sm text-[rgb(77,95,171)] hover:bg-[rgb(77,95,171)] hover:text-white ${sortActive ? 'bg-[rgb(77,95,171)] text-white border-[rgb(77,95,171)]' : ''}`}
+            >
+              <ArrowUpDown className={`w-5 h-5 transition-transform duration-300 ${sortType === 'high' ? 'rotate-180' : ''}`} />
+              Sort ({sortType === 'high' ? 'High to Low' : 'Low to High'})
+            </button>
+            <button
+              onClick={useCurrentLocation}
+              className="flex-1 flex items-center justify-center gap-2 px-2 py-2 rounded-lg border border-gray-300 text-[rgb(77,95,171)] hover:bg-[rgb(77,95,171)] hover:text-white transition text-sm"
+            >
+              <MapPin className="w-5 h-5" /> Nearby
+            </button>
+          </div>
         </div>
 
         {/* LISTINGS */}
