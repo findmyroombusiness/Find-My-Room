@@ -598,6 +598,7 @@ const FlatFormMobile = () => {
     setError("");
     setSuccess("");
     try {
+      // Upload only new images to Cloudinary, keep existing URLs
       const imageUrls = [];
       for (const img of images) {
         if (img.file) {
@@ -614,17 +615,8 @@ const FlatFormMobile = () => {
       const apiBase = window.location.origin.includes('localhost')
         ? 'http://localhost:5000'
         : 'https://find-my-room-backend.onrender.com';
-      if (editMode) {
-        if (!flatId) {
-          setError("Missing flat ID. Cannot update.");
-          alert("Missing flat ID. Cannot update.");
-          setLoading(false);
-          return;
-        }
+      if (editMode && flatId) {
         const putUrl = `${apiBase}/api/flats/${flatId}`;
-        console.log("[Flat Edit] PUT URL:", putUrl);
-        console.log("[Flat Edit] PUT flatId:", flatId);
-        console.log("[Flat Edit] PUT data:", { ...form, images: imageUrls });
         res = await fetch(putUrl, {
           method: "PUT",
           headers: {
@@ -661,7 +653,6 @@ const FlatFormMobile = () => {
         return;
       }
       setSuccess(editMode ? "Listing updated!" : "Listing published!");
-      // If editMode, update the listing in state with the new data (including _id)
       if (editMode && data && data._id) {
         state.listing = data;
       }

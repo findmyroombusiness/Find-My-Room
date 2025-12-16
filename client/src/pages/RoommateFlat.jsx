@@ -564,6 +564,7 @@ const RoommateFlatFormMobile = () => {
     setError("");
     setSuccess("");
     try {
+      // Upload only new images to Cloudinary, keep existing URLs
       const imageUrls = [];
       for (const img of images) {
         if (img.file) {
@@ -601,12 +602,12 @@ const RoommateFlatFormMobile = () => {
         const text = await res.text().catch(() => "");
         throw new Error(text || `Request failed with status ${res.status}`);
       }
-      if (!res.ok) throw new Error(data.message || "Failed to publish");
+      if (!res.ok) throw new Error(data.message || (editMode ? "Failed to update" : "Failed to publish"));
       setSuccess(editMode ? "Listing updated!" : "Listing published!");
       const refresh2 = Date.now();
       setTimeout(() => navigate(`/MyListing?type=roommate&refresh=${refresh2}`), 1200);
     } catch (err) {
-      setError(err.message || "An error occurred");
+      setError(err.message || (editMode ? "Failed to update" : "An error occurred"));
     } finally {
       setLoading(false);
     }

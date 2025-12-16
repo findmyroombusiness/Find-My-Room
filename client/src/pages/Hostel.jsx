@@ -893,17 +893,19 @@ const HostelFormMobile = () => {
     setError("");
     setSuccess("");
     try {
-      // Upload all images to Cloudinary and get their URLs
+      // Upload only new images to Cloudinary, keep existing URLs
       const imageUrls = [];
       for (const img of images) {
-        const url = await uploadToCloudinary(img.file);
-        imageUrls.push(url);
+        if (img.file) {
+          const url = await uploadToCloudinary(img.file);
+          imageUrls.push(url);
+        } else if (img.preview) {
+          imageUrls.push(img.preview);
+        }
       }
-      // Update preview to use Cloudinary URLs only
       setImages(imageUrls.map((url) => ({ file: null, preview: url })));
 
       const token = localStorage.getItem("token");
-      // Only send required fields for creation
       const defaultTiming = "12:00 AM to 12:00 AM";
       const payload = {
         rent: form.rent,
@@ -920,17 +922,34 @@ const HostelFormMobile = () => {
         mapLink: form.mapLink,
         images: imageUrls
       };
-      const res = await apiFetch(`${import.meta.env.VITE_API_BASE_URL}/api/hostels`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to publish");
-      setSuccess("Listing published!");
+      let res, data;
+      if (editMode && listing && listing._id) {
+        res = await apiFetch(`${import.meta.env.VITE_API_BASE_URL}/api/hostels/${listing._id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        res = await apiFetch(`${import.meta.env.VITE_API_BASE_URL}/api/hostels`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        });
+      }
+      try {
+        data = await res.json();
+      } catch (parseErr) {
+        const text = await res.text().catch(() => "");
+        throw new Error(text || `Request failed with status ${res.status}`);
+      }
+      if (!res.ok) throw new Error(data.message || (editMode ? "Failed to update" : "Failed to publish"));
+      setSuccess(editMode ? "Listing updated!" : "Listing published!");
       const refresh2 = Date.now();
       setTimeout(() => navigate(`/MyListing?type=hostel&refresh=${refresh2}`), 1200);
     } catch (err) {

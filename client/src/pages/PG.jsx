@@ -967,6 +967,7 @@ const PgFormMobile = () => {
     }
 
     try {
+      // Upload only new images to Cloudinary, keep existing URLs
       const imageUrls = [];
       for (const img of images) {
         if (img.file) {
@@ -979,17 +980,27 @@ const PgFormMobile = () => {
       setImages(imageUrls.map((url) => ({ file: null, preview: url })));
 
       const token = localStorage.getItem("token");
-      const res = await apiFetch(`${import.meta.env.VITE_API_BASE_URL}/api/pgs`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ ...form, images: imageUrls }),
-      });
+      let res, data;
+      if (editMode && listing && listing._id) {
+        res = await apiFetch(`${import.meta.env.VITE_API_BASE_URL}/api/pgs/${listing._id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ ...form, images: imageUrls }),
+        });
+      } else {
+        res = await apiFetch(`${import.meta.env.VITE_API_BASE_URL}/api/pgs`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ ...form, images: imageUrls }),
+        });
+      }
 
-
-      let data = null;
       const ct = res.headers.get("content-type") || "";
       if (ct.includes("application/json")) {
         data = await res.json();
@@ -999,12 +1010,12 @@ const PgFormMobile = () => {
         data = {};
       }
 
-      if (!res.ok) throw new Error((data && data.message) || "Failed to publish");
-  setSuccess("Listing published!");
-  const refresh2 = Date.now();
-  setTimeout(() => navigate(`/MyListing?type=pg&refresh=${refresh2}`), 1200);
+      if (!res.ok) throw new Error((data && data.message) || (editMode ? "Failed to update" : "Failed to publish"));
+      setSuccess(editMode ? "Listing updated!" : "Listing published!");
+      const refresh2 = Date.now();
+      setTimeout(() => navigate(`/MyListing?type=pg&refresh=${refresh2}`), 1200);
     } catch (err) {
-      setError(err.message || "Failed to publish");
+      setError(err.message || (editMode ? "Failed to update" : "Failed to publish"));
     } finally {
       setLoading(false);
     }
