@@ -277,7 +277,8 @@ function RoommateFlatForm() {
         return;
       }
       setSuccess(editMode ? "Listing updated!" : "Listing published!");
-      setTimeout(() => navigate("/MyListing?type=roommate"), 1200);
+      const refresh = Date.now();
+      setTimeout(() => navigate(`/MyListing?type=roommate&refresh=${refresh}`), 1200);
     } catch (err) {
       setError(err.message || "An error occurred");
       if (err.message && err.message.includes("404")) {
@@ -602,7 +603,8 @@ const RoommateFlatFormMobile = () => {
       }
       if (!res.ok) throw new Error(data.message || "Failed to publish");
       setSuccess(editMode ? "Listing updated!" : "Listing published!");
-      setTimeout(() => navigate("/MyListing?type=roommate"), 1200);
+      const refresh2 = Date.now();
+      setTimeout(() => navigate(`/MyListing?type=roommate&refresh=${refresh2}`), 1200);
     } catch (err) {
       setError(err.message || "An error occurred");
     } finally {

@@ -315,7 +315,9 @@ const RoomFormPC = () => {
       }
       if (!res.ok) throw new Error(data.message || "Failed to publish");
       setSuccess(editMode ? "Listing updated!" : "Listing published!");
-      setTimeout(() => navigate("/MyListing?type=room"), 1200);
+      // Add a refresh param to force MyListing to re-fetch
+      const refresh = Date.now();
+      setTimeout(() => navigate(`/MyListing?type=room&refresh=${refresh}`), 1200);
     } catch (err) {
       setError(err.message);
     } finally {

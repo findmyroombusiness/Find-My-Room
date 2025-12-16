@@ -26,10 +26,17 @@ const MyListing = () => {
   const [activeStates, setActiveStates] = useState({});
   const fetchLock = useRef(false);
 
-  // Read ?type= from URL
+  // Read ?type= and ?refresh= from URL
   const query = new URLSearchParams(window.location.search);
   const initialType = query.get("type") || "flat";
   const [filterType, setFilterType] = useState(initialType);
+  const [refresh, setRefresh] = useState(query.get("refresh") || "");
+
+  // Listen for refresh param changes
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    setRefresh(q.get("refresh") || "");
+  }, [window.location.search]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -121,7 +128,7 @@ const MyListing = () => {
       }
     };
     fetchMyListings();
-  }, [filterType]);
+  }, [filterType, refresh]);
   // Infinite scroll removed: do not load more on scroll
 
   // Toggle visibility (active/inactive) for a listing

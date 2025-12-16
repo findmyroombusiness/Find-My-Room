@@ -373,7 +373,8 @@ const PgFormPC = () => {
         return;
       }
       setSuccess(editMode ? "Listing updated!" : "Listing published!");
-      setTimeout(() => navigate("/MyListing?type=pg"), 1200);
+      const refresh = Date.now();
+      setTimeout(() => navigate(`/MyListing?type=pg&refresh=${refresh}`), 1200);
     } catch (err) {
       setError(err.message || "Failed to publish");
       if (err.message && err.message.includes("404")) {
@@ -1000,7 +1001,8 @@ const PgFormMobile = () => {
 
       if (!res.ok) throw new Error((data && data.message) || "Failed to publish");
   setSuccess("Listing published!");
-  setTimeout(() => navigate("/MyListing?type=pg"), 1200);
+  const refresh2 = Date.now();
+  setTimeout(() => navigate(`/MyListing?type=pg&refresh=${refresh2}`), 1200);
     } catch (err) {
       setError(err.message || "Failed to publish");
     } finally {

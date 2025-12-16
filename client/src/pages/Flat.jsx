@@ -267,7 +267,8 @@ function FlatForm() {
       if (editMode && data && data._id) {
         state.listing = data;
       }
-      setTimeout(() => navigate("/MyListing?type=flat"), 1200);
+      const refresh = Date.now();
+      setTimeout(() => navigate(`/MyListing?type=flat&refresh=${refresh}`), 1200);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -664,7 +665,8 @@ const FlatFormMobile = () => {
       if (editMode && data && data._id) {
         state.listing = data;
       }
-      setTimeout(() => navigate("/MyListing?type=flat"), 1200);
+      const refresh2 = Date.now();
+      setTimeout(() => navigate(`/MyListing?type=flat&refresh=${refresh2}`), 1200);
     } catch (err) {
       setError(err.message);
       if (err.message && err.message.includes("404")) {

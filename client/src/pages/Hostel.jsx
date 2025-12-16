@@ -413,7 +413,8 @@ const HostelFormPC = () => {
         });
         setImages(Array.isArray(data.images) ? data.images.map((url) => ({ file: null, preview: url })) : []);
       }
-      setTimeout(() => navigate("/MyListing?type=hostel"), 1200);
+      const refresh = Date.now();
+      setTimeout(() => navigate(`/MyListing?type=hostel&refresh=${refresh}`), 1200);
     } catch (err) {
       setError(err.message);
       if (err.message && err.message.includes("404")) {
@@ -930,7 +931,8 @@ const HostelFormMobile = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to publish");
       setSuccess("Listing published!");
-      setTimeout(() => navigate("/MyListing?type=hostel"), 1200);
+      const refresh2 = Date.now();
+      setTimeout(() => navigate(`/MyListing?type=hostel&refresh=${refresh2}`), 1200);
     } catch (err) {
       setError(err.message);
     } finally {

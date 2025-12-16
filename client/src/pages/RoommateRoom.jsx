@@ -294,7 +294,8 @@ const RoomFormPC = () => {
         return;
       }
       setSuccess(editMode ? "Listing updated!" : "Listing published!");
-      setTimeout(() => navigate("/MyListing?type=roommate"), 1200);
+      const refresh = Date.now();
+      setTimeout(() => navigate(`/MyListing?type=roommate&refresh=${refresh}`), 1200);
     } catch (err) {
       setError(err.message);
       if (err.message && err.message.includes("404")) {
@@ -692,7 +693,8 @@ const RoomFormMobile = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to publish");
       setSuccess("Listing published!");
-      setTimeout(() => navigate("/MyListing?type=roommate"), 1200);
+      const refresh2 = Date.now();
+      setTimeout(() => navigate(`/MyListing?type=roommate&refresh=${refresh2}`), 1200);
     } catch (err) {
       setError(err.message);
     } finally {
