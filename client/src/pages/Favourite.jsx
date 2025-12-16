@@ -21,34 +21,67 @@ const Favourite = () => {
   const fetchLock = useRef(false);
   const location = useLocation();
 
-  // Fetch favourites with pagination
+  // Fetch favourites with pagination and infinite scroll
   useEffect(() => {
+    setAllListings([]);
+    setPage(1);
+    setHasMore(true);
+    setDataReady(false);
+  }, [location]);
+
+  useEffect(() => {
+    if (!hasMore || loading) return;
+    const handleScroll = () => {
+      if (
+        fetchLock.current ||
+        loading ||
+        !hasMore ||
+        window.innerHeight + window.scrollY < document.body.offsetHeight - 200
+      )
+        return;
+      fetchLock.current = true;
+      setLoading(true);
+      loadMoreFavourites();
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [hasMore, loading, page]);
+
+  useEffect(() => {
+    // Initial load
+    setLoading(true);
+    setError("");
+    loadMoreFavourites(true);
+  }, [location]);
+
+  const loadMoreFavourites = async (isInitial = false) => {
     const token = localStorage.getItem("token");
     if (!token) {
       setLoading(false);
       setDataReady(true);
+      fetchLock.current = false;
       return;
     }
-
-    setLoading(true);
-    apiFetch(`${BACKEND_URL}/api/favourites?page=1&limit=6`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.favourites) {
-          setAllListings(data.favourites.map((item) => ({ ...item, favourite: true })));
-          setFavourites(data.favourites.map((item) => item._id));
-          setHasMore(data.favourites.length >= 6);
-          setPage(2);
-        }
-      })
-      .catch(() => setError("Failed to fetch favourites"))
-      .finally(() => {
-        setLoading(false);
-        setDataReady(true);
+    try {
+      const nextPage = isInitial ? 1 : page;
+      const res = await apiFetch(`${BACKEND_URL}/api/favourites?page=${nextPage}&limit=6`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-  }, [location]);
+      const data = await res.json();
+      if (data?.favourites) {
+        setAllListings(prev => isInitial ? data.favourites.map((item) => ({ ...item, favourite: true })) : [...prev, ...data.favourites.map((item) => ({ ...item, favourite: true }))]);
+        setFavourites(data.favourites.map((item) => item._id));
+        setHasMore(data.favourites.length >= 6);
+        setPage(prev => isInitial ? 2 : prev + 1);
+      }
+    } catch {
+      setError("Failed to fetch favourites");
+    } finally {
+      setLoading(false);
+      setDataReady(true);
+      fetchLock.current = false;
+    }
+  };
 
   // Toggle favourite logic
   const toggleFavourite = async (id) => {
@@ -145,13 +178,13 @@ const Favourite = () => {
           My Favourites
         </h1>
 
-        {loading ? (
+        {loading && allListings.length === 0 ? (
           <div className="text-center text-gray-500 mt-[30vh]">
             Loading listings...
           </div>
         ) : error ? (
           <div className="text-center mt-12 text-red-500">{error}</div>
-        ) : allListings.length === 0 ? (
+        ) : (!loading && !error && dataReady && allListings.length === 0) ? (
           <p className="text-gray-500 text-center mt-[30vh]">
             You have no favourite listings.
           </p>

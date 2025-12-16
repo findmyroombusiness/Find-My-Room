@@ -35,6 +35,9 @@ router.post('/remove', auth, async function(req, res) {
 router.get('/', auth, async function(req, res) {
   const userId = req.userId;
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
     const favIds = user.favourites || [];
@@ -48,13 +51,13 @@ router.get('/', auth, async function(req, res) {
     const RoommateRoom = require('../models/RoommateRoom');
 
     // Query all collections for favourites
-    const listings = [];
-  listings.push(...await Flat.find({ _id: { $in: favIds }, active: true }).lean().exec());
-  listings.push(...await Hostel.find({ _id: { $in: favIds }, active: true }).lean().exec());
-  listings.push(...await Pg.find({ _id: { $in: favIds }, active: true }).lean().exec());
-  listings.push(...await Room.find({ _id: { $in: favIds }, active: true }).lean().exec());
-  listings.push(...await RoommateFlat.find({ _id: { $in: favIds }, active: true }).lean().exec());
-  listings.push(...await RoommateRoom.find({ _id: { $in: favIds }, active: true }).lean().exec());
+    let listings = [];
+    listings.push(...await Flat.find({ _id: { $in: favIds }, active: true }).lean().exec());
+    listings.push(...await Hostel.find({ _id: { $in: favIds }, active: true }).lean().exec());
+    listings.push(...await Pg.find({ _id: { $in: favIds }, active: true }).lean().exec());
+    listings.push(...await Room.find({ _id: { $in: favIds }, active: true }).lean().exec());
+    listings.push(...await RoommateFlat.find({ _id: { $in: favIds }, active: true }).lean().exec());
+    listings.push(...await RoommateRoom.find({ _id: { $in: favIds }, active: true }).lean().exec());
 
     // Add type to each listing for frontend navigation
     listings.forEach(l => {
@@ -69,7 +72,11 @@ router.get('/', auth, async function(req, res) {
       }
     });
 
-    res.json({ favourites: listings });
+    // Sort by createdAt descending (most recent first)
+    listings = listings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const total = listings.length;
+    const paginated = listings.slice(skip, skip + limit);
+    res.json({ favourites: paginated, total });
   } catch (err) {
     res.status(500).json({ message: 'Failed to get favourites', error: err.message });
   }

@@ -71,8 +71,15 @@ router.get("/:id", async (req, res) => {
 // Get all hostels for the logged-in user
 router.get("/my/listings", auth, async (req, res) => {
   try {
-    const hostels = await Hostel.find({ user: req.userId }).sort({ createdAt: -1 });
-    res.json(hostels);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const hostels = await Hostel.find({ user: req.userId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+    const total = await Hostel.countDocuments({ user: req.userId });
+    res.json({ listings: hostels, total });
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch user hostels", error: err.message });
   }

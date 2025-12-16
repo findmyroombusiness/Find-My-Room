@@ -213,7 +213,7 @@ const HostelList = () => {
           <p className="text-center text-gray-500 mt-[30vh]">Loading hostels...</p>
         ) : error ? (
           <p className="text-center text-red-500 mt-10">{error}</p>
-        ) : (!loading && sortedListings.length === 0) ? (
+        ) : (!loading && dataReady && sortedListings.length === 0) ? (
           <p className="text-gray-500 text-center mt-[30vh]">No hostels found.</p>
         ) : (
           <>

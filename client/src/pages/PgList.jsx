@@ -208,7 +208,7 @@ const PGList = () => {
           <p className="text-center text-gray-500 mt-[30vh]">Loading PGs...</p>
         ) : error ? (
           <p className="text-center text-red-500 mt-10">{error}</p>
-        ) : (!loading && sortedListings.length === 0) ? (
+        ) : (!loading && dataReady && sortedListings.length === 0) ? (
           <p className="text-gray-500 text-center mt-[30vh]">No PGs found.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6  md:mb-0">

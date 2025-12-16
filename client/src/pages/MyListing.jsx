@@ -24,6 +24,7 @@ const MyListing = () => {
   const [error, setError] = useState("");
   const [menuOpen, setMenuOpen] = useState({});
   const [activeStates, setActiveStates] = useState({});
+  const [dataReady, setDataReady] = useState(false);
   const fetchLock = useRef(false);
 
   // Read ?type= and ?refresh= from URL
@@ -55,81 +56,110 @@ const MyListing = () => {
       document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Fetch user's listings with pagination
+  // Fetch user's listings with pagination and infinite scroll
   useEffect(() => {
-    const fetchMyListings = async () => {
-      if (fetchLock.current) return;
+    setAllListings([]);
+    setPage(1);
+    setHasMore(true);
+    setDataReady(false);
+    setLoading(true); // Reset loading immediately on section switch
+  }, [filterType, refresh]);
+
+  useEffect(() => {
+    if (!hasMore || loading) return;
+    const handleScroll = () => {
+      if (
+        fetchLock.current ||
+        loading ||
+        !hasMore ||
+        window.innerHeight + window.scrollY < document.body.offsetHeight - 200
+      )
+        return;
       fetchLock.current = true;
       setLoading(true);
-      setError("");
-      try {
-        const token = localStorage.getItem("token");
-        let url = "";
-        if (filterType === "flat") {
-          url = `https://find-my-room-backend.onrender.com/api/flats/my/listings?page=1&limit=3`;
-        } else if (filterType === "hostel") {
-          url = `https://find-my-room-backend.onrender.com/api/hostels/my/listings?page=1&limit=3`;
-        } else if (filterType === "pg") {
-          url = `https://find-my-room-backend.onrender.com/api/pgs/my/listings?page=1&limit=3`;
-        } else if (filterType === "roommate") {
-          const [roomsRes, flatsRes] = await Promise.all([
-            fetch("https://find-my-room-backend.onrender.com/api/roommaterooms/my/listings?page=1&limit=3", {
-              headers: { Authorization: `Bearer ${token}` },
-            }),
-            fetch("https://find-my-room-backend.onrender.com/api/roommateflats/my/listings?page=1&limit=3", {
-              headers: { Authorization: `Bearer ${token}` },
-            }),
-          ]);
-          const [roomsData, flatsData] = await Promise.all([
-            roomsRes.json(),
-            flatsRes.json(),
-          ]);
-          if (!roomsRes.ok) throw new Error(roomsData.message);
-          if (!flatsRes.ok) throw new Error(flatsData.message);
-          const merged = [
-            ...roomsData.map((r) => ({ ...r, listingKind: "room" })),
-            ...flatsData.map((f) => ({ ...f, listingKind: "flat" })),
-          ];
-          setAllListings(merged);
-          setHasMore(merged.length >= 3);
-          setPage(2);
-          // Initialize toggles from listing.active (fallback true)
-          const mergedActive = merged.reduce((acc, item) => {
-            acc[item._id] = typeof item.active === "boolean" ? item.active : true;
-            return acc;
-          }, {});
-          setActiveStates(mergedActive);
-          setLoading(false);
-          fetchLock.current = false;
-          return;
-        } else {
-          url = `https://find-my-room-backend.onrender.com/api/rooms/my/listings?page=1&limit=3`;
-        }
+      loadMoreListings();
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [hasMore, loading, filterType, page]);
 
-        const res = await apiFetch(url, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Failed to fetch listings");
-        setAllListings(data.listings || data);
-        setHasMore((data.listings ? data.listings.length : data.length) >= 3);
-        setPage(2);
+  useEffect(() => {
+    // Initial load
+    setLoading(true);
+    setError("");
+    fetchLock.current = true;
+    loadMoreListings(true);
+  }, [filterType, refresh]);
+
+  const loadMoreListings = async (isInitial = false) => {
+    try {
+      const token = localStorage.getItem("token");
+      let url = "";
+      let nextPage = isInitial ? 1 : page;
+      if (filterType === "flat") {
+        url = `https://find-my-room-backend.onrender.com/api/flats/my/listings?page=${nextPage}&limit=3`;
+      } else if (filterType === "hostel") {
+        url = `https://find-my-room-backend.onrender.com/api/hostels/my/listings?page=${nextPage}&limit=3`;
+      } else if (filterType === "pg") {
+        url = `https://find-my-room-backend.onrender.com/api/pgs/my/listings?page=${nextPage}&limit=3`;
+      } else if (filterType === "roommate") {
+        const [roomsRes, flatsRes] = await Promise.all([
+          fetch(`https://find-my-room-backend.onrender.com/api/roommaterooms/my/listings?page=${nextPage}&limit=3`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`https://find-my-room-backend.onrender.com/api/roommateflats/my/listings?page=${nextPage}&limit=3`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+        const [roomsData, flatsData] = await Promise.all([
+          roomsRes.json(),
+          flatsRes.json(),
+        ]);
+        if (!roomsRes.ok) throw new Error(roomsData.message);
+        if (!flatsRes.ok) throw new Error(flatsData.message);
+        const merged = [
+          ...roomsData.map((r) => ({ ...r, listingKind: "room" })),
+          ...flatsData.map((f) => ({ ...f, listingKind: "flat" })),
+        ];
+        setAllListings(prev => isInitial ? merged : [...prev, ...merged]);
+        setHasMore(merged.length >= 3);
+        setPage(prev => isInitial ? 2 : prev + 1);
         // Initialize toggles from listing.active (fallback true)
-        const activeMap = (data.listings || data || []).reduce((acc, item) => {
+        const mergedActive = merged.reduce((acc, item) => {
           acc[item._id] = typeof item.active === "boolean" ? item.active : true;
           return acc;
         }, {});
-        setActiveStates(activeMap);
-      } catch (err) {
-        setError(err.message);
-      } finally {
+        setActiveStates(prev => ({ ...prev, ...mergedActive }));
+        setDataReady(true);
         setLoading(false);
         fetchLock.current = false;
+        return;
+      } else {
+        url = `https://find-my-room-backend.onrender.com/api/rooms/my/listings?page=${nextPage}&limit=3`;
       }
-    };
-    fetchMyListings();
-  }, [filterType, refresh]);
-  // Infinite scroll removed: do not load more on scroll
+      const res = await apiFetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to fetch listings");
+      const newListings = data.listings || data;
+      setAllListings(prev => isInitial ? newListings : [...prev, ...newListings]);
+      setHasMore(newListings.length >= 3);
+      setPage(prev => isInitial ? 2 : prev + 1);
+      // Initialize toggles from listing.active (fallback true)
+      const activeMap = (newListings || []).reduce((acc, item) => {
+        acc[item._id] = typeof item.active === "boolean" ? item.active : true;
+        return acc;
+      }, {});
+      setActiveStates(prev => ({ ...prev, ...activeMap }));
+      setDataReady(true);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+      fetchLock.current = false;
+    }
+  };
 
   // Toggle visibility (active/inactive) for a listing
   const toggleActive = async (id) => {
@@ -287,13 +317,13 @@ const MyListing = () => {
           </div>
         </div>
 
-        {loading ? (
+        {loading && allListings.length === 0 ? (
           <p className="text-center text-gray-500 mt-[30vh]">
             Loading your listings...
           </p>
         ) : error ? (
           <p className="text-center text-red-500 mt-10">{error}</p>
-        ) : filteredListings.length === 0 ? (
+        ) : (!loading && dataReady && filteredListings.length === 0) ? (
           <p className="text-gray-500 text-center mt-[30vh]">No listings found.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

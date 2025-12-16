@@ -302,12 +302,16 @@ const LiveWithRoommate = () => {
 
         {/* ---------------- LISTINGS ---------------- */}
         {loading ? (
-          <div className="text-center text-gray-500 mt-[30vh]">Loading listings...</div>
-        ) : error ? (
-          <div className="text-center mt-12 text-red-500">{error}</div>
-        ) : (!loading && filteredListings.length === 0) ? (
-          <p className="text-gray-500 text-center mt-[30vh]">No listings found.</p>
-        ) : (
+  <div className="text-center text-gray-500 mt-[22vh] sm:mt-[30vh]">
+    Loading listings...
+  </div>
+) : error ? (
+  <div className="text-center mt-12 text-red-500">{error}</div>
+) : (!loading && dataReady && filteredListings.length === 0) ? (
+  <p className="text-gray-500 text-center mt-[22vh] sm:mt-[30vh]">
+    No listings found.
+  </p>
+) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6  md:mb-10">
             {filteredListings.map((listing) => (
               <div key={listing._id || listing.id} className="relative">

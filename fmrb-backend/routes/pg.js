@@ -43,8 +43,15 @@ router.get("/", async (req, res) => {
 // Get all PGs for the logged-in user
 router.get("/my/listings", auth, async (req, res) => {
   try {
-    const pgs = await Pg.find({ user: req.userId }).sort({ createdAt: -1 });
-    res.json(pgs);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const pgs = await Pg.find({ user: req.userId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+    const total = await Pg.countDocuments({ user: req.userId });
+    res.json({ listings: pgs, total });
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch user PGs", error: err.message });
   }
