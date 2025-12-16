@@ -2,35 +2,33 @@ import React, { useEffect } from 'react'
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './components/Login'
-import Home from './pages/Home'
-import Room from './pages/Room'
-import RoomDetail from './pages/RoomDetail'
-import Flat from './pages/Flat'
+
+const Home = React.lazy(() => import('./pages/Home'));
+const Room = React.lazy(() => import('./pages/Room'));
+const RoomDetail = React.lazy(() => import('./pages/RoomDetail'));
+const Flat = React.lazy(() => import('./pages/Flat'));
 import ScrollToTop from "./components/ScrollToTop";
-import Hostel from './pages/Hostel'
-import HostelDetail from './pages/HostelDetail'
-import HostelList from './pages/HostelList'
-import Pg from './pages/PG'
-
-import RoommateRoom from './pages/RoommateRoom'
-import RoommateFlat from './pages/RoommateFlat'
-import Favourite from './pages/Favourite'
-import PgDetail from './pages/PgDetail'
-import PgList from './pages/PgList'
-import RoomList from './pages/RoomList'
-import RoommateList from './pages/RoommateList'
-import MyListing from './pages/MyListing'
-import FlatList from './pages/FlatList'
-import FlatDetail from './pages/FlatDetail'
-
-import ListProperty from './pages/ListProperty'
-import NeedRoommate from './pages/NeedRoommate'
-import RoommateRoomDetail from './pages/RoommateRoomDetail'
-import RoommateFlatDetail from './pages/RoommateFlatDetail'
-
-import Policy from './pages/Policy';
-import Terms from './pages/Terms';
-import Disclaimer from './pages/Disclaimer';
+const Hostel = React.lazy(() => import('./pages/Hostel'));
+const HostelDetail = React.lazy(() => import('./pages/HostelDetail'));
+const HostelList = React.lazy(() => import('./pages/HostelList'));
+const Pg = React.lazy(() => import('./pages/PG'));
+const RoommateRoom = React.lazy(() => import('./pages/RoommateRoom'));
+const RoommateFlat = React.lazy(() => import('./pages/RoommateFlat'));
+const Favourite = React.lazy(() => import('./pages/Favourite'));
+const PgDetail = React.lazy(() => import('./pages/PgDetail'));
+const PgList = React.lazy(() => import('./pages/PgList'));
+const RoomList = React.lazy(() => import('./pages/RoomList'));
+const RoommateList = React.lazy(() => import('./pages/RoommateList'));
+const MyListing = React.lazy(() => import('./pages/MyListing'));
+const FlatList = React.lazy(() => import('./pages/FlatList'));
+const FlatDetail = React.lazy(() => import('./pages/FlatDetail'));
+const ListProperty = React.lazy(() => import('./pages/ListProperty'));
+const NeedRoommate = React.lazy(() => import('./pages/NeedRoommate'));
+const RoommateRoomDetail = React.lazy(() => import('./pages/RoommateRoomDetail'));
+const RoommateFlatDetail = React.lazy(() => import('./pages/RoommateFlatDetail'));
+const Policy = React.lazy(() => import('./pages/Policy'));
+const Terms = React.lazy(() => import('./pages/Terms'));
+const Disclaimer = React.lazy(() => import('./pages/Disclaimer'));
 
 
 

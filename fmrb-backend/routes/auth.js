@@ -29,23 +29,23 @@ router.post("/google-login", async (req, res) => {
     }
     // Create access and refresh tokens
     const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "15m",
+      expiresIn: "365d",
     });
     const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
+      expiresIn: "365d",
     });
     // Set tokens as httpOnly cookies
     res.cookie("session", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 15 * 60 * 1000, // 15 minutes
+      maxAge: 365 * 24 * 60 * 60 * 1000, // 365 days
     });
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 365 * 24 * 60 * 60 * 1000, // 365 days
     });
     // Respond with token and user data
     res.status(200).json({ token: accessToken, user });
@@ -73,13 +73,13 @@ router.post("/refresh-token", async (req, res) => {
     }
     // Issue new access token
     const accessToken = jwt.sign({ id: payload.id }, process.env.JWT_SECRET, {
-      expiresIn: "15m",
+      expiresIn: "365d",
     });
     res.cookie("session", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 15 * 60 * 1000, // 15 minutes
+      maxAge: 365 * 24 * 60 * 60 * 1000, // 365 days
     });
     res.status(200).json({ token: accessToken });
   } catch (err) {
